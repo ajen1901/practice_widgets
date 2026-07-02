@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Player Roster</title>
+
+  <!-- This is the only script you need to talk to Grist -->
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      padding: 12px;
+      min-height: 100vh;
+    }
+
+    /* ── Placeholder shown before a player is selected ── */
+    #placeholder {
+      color: #666;
+      padding: 24px;
+      text-align: center;
+    }
+
+    /* ── Player name header ── */
+    #player-header {
+      font-size: 16px;
+      font-weight: bold;
+      color: #7eb8f7;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #2d2d4e;
+      display: none;
+    }
+
+    /* ── Character count summary ── */
+    #roster-summary {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 12px;
+    }
+
+    /* ── Card grid ── */
+    #roster {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 8px;
+    }
+
+    /* ── Individual character card ── */
+    .card {
+      background: #16213e;
+      border: 1px solid #2d2d4e;
+      border-radius: 6px;
+      padding: 10px;
+    }
+
+    .card-name {
+      font-weight: bold;
+      font-size: 13px;
+      color: #ffffff;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-row {
+      font-size: 11px;
+      color: #aaa;
+      margin-bottom: 2px;
+    }
+
+    .card-row span {
+      color: #7eb8f7;
+      font-weight: bold;
+    }
+
+    /* Highlight cards at paragon tiers */
+    .card.paragon {
+      border-color: #f0c040;
+    }
+
+    .card.paragon .card-name {
+      color: #f0c040;
+    }
+  </style>
+</head>
+<body>
+
+  <p id="placeholder">Select a player to view their roster.</p>
+  <div id="player-header"></div>
+  <div id="roster-summary"></div>
+  <div id="roster"></div>
+
+  <script>
+    // ── 1. Tell Grist the widget is ready.
+    //    The `columns` array prompts the user to map a column from their table
+    //    to the name "roster" that we use below. This avoids hardcoding column names.
+    grist.ready({
+      requiredAccess: 'read table',
+      columns: [
+        {
+          name: 'roster',      // internal name we'll use in code
+          title: 'Roster JSON', // label shown in Grist's column mapping UI
+          type: 'Text'
+        }
+      ]
+    });
+
+
+    // ── 2. React to the selected row changing.
+    //    Grist calls this automatically whenever the user clicks a different
+    //    row in the linked table (your Players table).
+    grist.onRecord(function(record, mappings) {
+
+      // mapColumnNames translates the user's actual column names to
+      // the internal names we declared above, so "roster" always works
+      // regardless of what the column is actually called in Grist.
+      const mapped = grist.mapColumnNames(record, mappings);
+
+      // Parse the JSON from the roster column.
+      // We expect an array of objects like:
+      //   { "name": "Aether", "ascension": "supreme+", "equipment": 15 }
+      let roster = [];
+      try {
+        roster = JSON.parse(mapped.roster || '[]');
+      } catch(e) {
+        roster = [];
+      }
+
+      renderRoster(record, roster);
+    });
+
+
+    // ── 3. Render the roster into the page.
+    function renderRoster(record, roster) {
+      const placeholder  = document.getElementById('placeholder');
+      const header       = document.getElementById('player-header');
+      const summary      = document.getElementById('roster-summary');
+      const rosterEl     = document.getElementById('roster');
+
+      // Nothing to show
+      if (!roster.length) {
+        placeholder.textContent = roster === null
+          ? 'No roster data for this player.'
+          : 'Select a player to view their roster.';
+        header.style.display = 'none';
+        summary.textContent = '';
+        rosterEl.innerHTML = '';
+        return;
+      }
+
+      placeholder.textContent = '';
+      header.style.display = 'block';
+
+      // Use the player_name field from the record directly (not from JSON)
+      // Adjust 'player_name' if your column is named differently in Grist
+      header.textContent = record.player_name || 'Player';
+      summary.textContent = `${roster.length} character${roster.length !== 1 ? 's' : ''}`;
+
+      // Build one card per character
+      rosterEl.innerHTML = roster.map(char => {
+        const isParagon = (char.ascension || '').startsWith('paragon');
+        return `
+          <div class="card ${isParagon ? 'paragon' : ''}">
+            <div class="card-name">${char.name || '—'}</div>
+            <div class="card-row">Ascension: <span>${char.ascension || '—'}</span></div>
+            <div class="card-row">Equipment: <span>${char.equipment ?? '—'}</span></div>
+          </div>
+        `;
+      }).join('');
+    }
+  </script>
+
+</body>
+</html>

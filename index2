@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Player Roster</title>
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      padding: 12px;
+      min-height: 100vh;
+    }
+
+    /* ── Shown before a player is selected ── */
+    #placeholder {
+      color: #555;
+      padding: 32px;
+      text-align: center;
+    }
+
+    #app { display: none; }
+    #app.visible { display: block; }
+
+    /* ── Player header ── */
+    #player-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #7eb8f7;
+      margin-bottom: 4px;
+    }
+
+    #roster-summary {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 12px;
+    }
+
+    /* ── Search + filters ── */
+    #controls {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+
+    #search {
+      width: 100%;
+      padding: 7px 10px;
+      background: #16213e;
+      border: 1px solid #2d2d4e;
+      border-radius: 5px;
+      color: #e0e0e0;
+      font-size: 12px;
+      outline: none;
+    }
+    #search:focus { border-color: #7eb8f7; }
+    #search::placeholder { color: #444; }
+
+    /* Filter pill buttons */
+    #filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .filter-btn {
+      padding: 3px 11px;
+      border-radius: 20px;
+      border: 1px solid #2d2d4e;
+      background: #16213e;
+      color: #888;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.12s;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .filter-btn:hover { border-color: #7eb8f7; color: #ccc; }
+    .filter-btn.active { background: #2d6a9f; border-color: #7eb8f7; color: #fff; }
+
+    #clear-btn {
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #555;
+      font-size: 11px;
+      cursor: pointer;
+      transition: color 0.12s;
+      display: none; /* only shown when filters are active */
+    }
+    #clear-btn:hover { color: #aaa; }
+
+    /* ── Card grid ── */
+    #roster {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 8px;
+    }
+
+    .card {
+      background: #16213e;
+      border: 1px solid #2d2d4e;
+      border-radius: 6px;
+      padding: 10px;
+    }
+    .card-name {
+      font-weight: bold;
+      font-size: 13px;
+      color: #fff;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-row { font-size: 11px; color: #888; margin-bottom: 2px; }
+    .card-row span { color: #7eb8f7; font-weight: bold; }
+
+    /* Gold highlight for paragon characters */
+    .card.paragon { border-color: #c8961a; }
+    .card.paragon .card-name { color: #f0c040; }
+
+    #no-results {
+      color: #444;
+      text-align: center;
+      padding: 24px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <p id="placeholder">Select a player to view their roster.</p>
+
+  <div id="app">
+    <div id="player-name"></div>
+    <div id="roster-summary"></div>
+
+    <div id="controls">
+      <input id="search" type="text" placeholder="Search characters…">
+      <div id="filter-buttons"></div>
+    </div>
+
+    <div id="roster">
+      <p id="no-results">No characters match your search.</p>
+    </div>
+  </div>
+
+  <script>
+    // ── Tier grouping — proxy for faction until faction data exists ──────────
+    // Each tier maps to a set of ascension levels. When you add a real faction
+    // field to the JSON, replace getTier() and TIERS with the faction values.
+    const TIERS = ['Paragon', 'Supreme+', 'Supreme', 'Mythic+', 'Mythic', 'Legendary', 'Epic'];
+
+    function getTier(ascension) {
+      const a = (ascension || '').toLowerCase().trim();
+      if (a.startsWith('paragon'))   return 'Paragon';
+      if (a === 'supreme+')          return 'Supreme+';
+      if (a === 'supreme')           return 'Supreme';
+      if (a === 'mythic+')           return 'Mythic+';
+      if (a === 'mythic')            return 'Mythic';
+      if (a.startsWith('legendary')) return 'Legendary';
+      return 'Epic';
+    }
+
+    // ── Widget state ─────────────────────────────────────────────────────────
+    let fullRoster   = [];   // all characters for the current player
+    let activeFilters = new Set();
+    let searchTerm   = '';
+
+    // ── Grist setup ──────────────────────────────────────────────────────────
+    // `columns` tells Grist which fields to expose for mapping.
+    // The user connects these to their actual column names in the widget panel.
+    grist.ready({
+      requiredAccess: 'read table',
+      columns: [
+        { name: 'player_name', title: 'Player Name', type: 'Text' },
+        { name: 'roster',      title: 'Roster JSON', type: 'Text'  }
+      ]
+    });
+
+    // Fires whenever the selected row in the linked Players table changes.
+    grist.onRecord(function(record, mappings) {
+      const mapped = mappings ? grist.mapColumnNames(record, mappings) : record;
+
+      // Parse roster JSON
+      try {
+        fullRoster = JSON.parse(mapped.roster || '[]');
+      } catch(e) {
+        fullRoster = [];
+      }
+
+      // Reset search and filters on player change so you start fresh
+      searchTerm = '';
+      activeFilters.clear();
+      document.getElementById('search').value = '';
+      syncFilterButtons();
+
+      // Player name — now comes from the mapped column, not a hardcoded field
+      document.getElementById('player-name').textContent =
+        mapped.player_name || '(no name)';
+
+      renderRoster();
+
+      // Toggle main content vs placeholder
+      const hasData = fullRoster.length > 0;
+      document.getElementById('placeholder').style.display = hasData ? 'none' : 'block';
+      document.getElementById('placeholder').textContent   = 'No roster data for this player.';
+      document.getElementById('app').classList.toggle('visible', hasData);
+    });
+
+
+    // ── Filter buttons ───────────────────────────────────────────────────────
+    // Built once on load — they don't change, only their active state does.
+    function buildFilterButtons() {
+      const container = document.getElementById('filter-buttons');
+
+      TIERS.forEach(tier => {
+        const btn = document.createElement('button');
+        btn.className    = 'filter-btn';
+        btn.dataset.tier = tier;
+        btn.textContent  = tier;
+        btn.addEventListener('click', () => {
+          if (activeFilters.has(tier)) {
+            activeFilters.delete(tier);
+          } else {
+            activeFilters.add(tier);
+          }
+          syncFilterButtons();
+          renderRoster();
+        });
+        container.appendChild(btn);
+      });
+
+      // Clear button — shown only when at least one filter is active
+      const clear = document.createElement('button');
+      clear.id          = 'clear-btn';
+      clear.textContent = '✕ clear';
+      clear.addEventListener('click', () => {
+        activeFilters.clear();
+        syncFilterButtons();
+        renderRoster();
+      });
+      container.appendChild(clear);
+    }
+
+    // Update visual state of buttons to match activeFilters
+    function syncFilterButtons() {
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', activeFilters.has(btn.dataset.tier));
+      });
+      // Show/hide clear button
+      document.getElementById('clear-btn').style.display =
+        activeFilters.size > 0 ? 'inline-block' : 'none';
+    }
+
+
+    // ── Render ───────────────────────────────────────────────────────────────
+    function renderRoster() {
+      const rosterEl  = document.getElementById('roster');
+      const summaryEl = document.getElementById('roster-summary');
+      const noResults = document.getElementById('no-results');
+
+      // Filter by active tier buttons AND search term
+      const filtered = fullRoster.filter(char => {
+        const nameMatch = (char.name || '').toLowerCase().includes(searchTerm);
+        const tierMatch = activeFilters.size === 0 || activeFilters.has(getTier(char.ascension));
+        return nameMatch && tierMatch;
+      });
+
+      // Summary line
+      const filterActive = activeFilters.size > 0 || searchTerm;
+      summaryEl.textContent = filterActive
+        ? `${filtered.length} of ${fullRoster.length} characters`
+        : `${fullRoster.length} character${fullRoster.length !== 1 ? 's' : ''}`;
+
+      // Clear old cards, keep the no-results node
+      Array.from(rosterEl.children).forEach(child => {
+        if (child.id !== 'no-results') child.remove();
+      });
+
+      if (filtered.length === 0) {
+        noResults.style.display = 'block';
+        return;
+      }
+      noResults.style.display = 'none';
+
+      filtered.forEach(char => {
+        const card = document.createElement('div');
+        card.className = `card ${getTier(char.ascension) === 'Paragon' ? 'paragon' : ''}`;
+        card.innerHTML = `
+          <div class="card-name">${char.name || '—'}</div>
+          <div class="card-row">Ascension: <span>${char.ascension || '—'}</span></div>
+          <div class="card-row">Equipment: <span>${char.equipment ?? '—'}</span></div>
+        `;
+        rosterEl.appendChild(card);
+      });
+    }
+
+
+    // ── Search input ─────────────────────────────────────────────────────────
+    document.getElementById('search').addEventListener('input', function() {
+      searchTerm = this.value.toLowerCase().trim();
+      renderRoster();
+    });
+
+
+    // ── Init ─────────────────────────────────────────────────────────────────
+    buildFilterButtons();
+  </script>
+
+</body>
+</html>

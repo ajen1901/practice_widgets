@@ -17,37 +17,23 @@
       min-height: 100vh;
     }
 
-    /* ── Shown before a player is selected ── */
-    #placeholder {
-      color: #555;
-      padding: 32px;
-      text-align: center;
-    }
-
+    #placeholder { color: #555; padding: 32px; text-align: center; }
     #app { display: none; }
     #app.visible { display: block; }
 
-    /* ── Player header ── */
-    #player-name {
-      font-size: 18px;
-      font-weight: bold;
-      color: #7eb8f7;
+    /* ── Header ── */
+    #header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
       margin-bottom: 4px;
     }
+    #player-name { font-size: 18px; font-weight: bold; color: #7eb8f7; }
+    #last-updated { font-size: 11px; color: #555; }
+    #roster-summary { font-size: 11px; color: #666; margin-bottom: 10px; }
 
-    #roster-summary {
-      font-size: 11px;
-      color: #666;
-      margin-bottom: 12px;
-    }
-
-    /* ── Search + filters ── */
-    #controls {
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-      margin-bottom: 12px;
-    }
+    /* ── Controls ── */
+    #controls { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
 
     #search {
       width: 100%;
@@ -62,16 +48,23 @@
     #search:focus { border-color: #7eb8f7; }
     #search::placeholder { color: #444; }
 
-    /* Filter pill buttons */
-    #filter-buttons {
+    /* ── Filter rows ── */
+    .filter-row {
       display: flex;
+      align-items: center;
       flex-wrap: wrap;
       gap: 5px;
-      align-items: center;
     }
-
+    .filter-label {
+      font-size: 10px;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      min-width: 36px;
+      flex-shrink: 0;
+    }
     .filter-btn {
-      padding: 3px 11px;
+      padding: 3px 10px;
       border-radius: 20px;
       border: 1px solid #2d2d4e;
       background: #16213e;
@@ -84,9 +77,8 @@
     }
     .filter-btn:hover { border-color: #7eb8f7; color: #ccc; }
     .filter-btn.active { background: #2d6a9f; border-color: #7eb8f7; color: #fff; }
-
-    #clear-btn {
-      padding: 3px 10px;
+    .clear-btn {
+      padding: 3px 8px;
       border-radius: 20px;
       border: 1px solid transparent;
       background: transparent;
@@ -94,16 +86,11 @@
       font-size: 11px;
       cursor: pointer;
       transition: color 0.12s;
-      display: none; /* only shown when filters are active */
     }
-    #clear-btn:hover { color: #aaa; }
+    .clear-btn:hover { color: #aaa; }
 
-    /* ── Card grid ── */
-    #roster {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 8px;
-    }
+    /* ── Cards ── */
+    #roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 8px; }
 
     .card {
       background: #16213e;
@@ -111,28 +98,39 @@
       border-radius: 6px;
       padding: 10px;
     }
+    .card.paragon { border-color: #c8961a; }
     .card-name {
       font-weight: bold;
       font-size: 13px;
       color: #fff;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .card.paragon .card-name { color: #f0c040; }
+
+    /* Role badge */
+    .card-role {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 7px;
+      border-radius: 10px;
+      margin-bottom: 5px;
+      font-weight: bold;
+      text-transform: capitalize;
+    }
+    .card-role.mage      { background: #2d1f5e; color: #b39ddb; }
+    .card-role.marksman  { background: #1a3d2b; color: #80cbc4; }
+    .card-role.support   { background: #1a2f4a; color: #81d4fa; }
+    .card-role.tank      { background: #3d2b1a; color: #ffcc80; }
+    .card-role.warrior   { background: #3d1a1a; color: #ef9a9a; }
+    .card-role.rogue     { background: #252525; color: #b0bec5; }
+
     .card-row { font-size: 11px; color: #888; margin-bottom: 2px; }
     .card-row span { color: #7eb8f7; font-weight: bold; }
 
-    /* Gold highlight for paragon characters */
-    .card.paragon { border-color: #c8961a; }
-    .card.paragon .card-name { color: #f0c040; }
-
-    #no-results {
-      color: #444;
-      text-align: center;
-      padding: 24px;
-      display: none;
-    }
+    #no-results { color: #444; text-align: center; padding: 24px; display: none; }
   </style>
 </head>
 <body>
@@ -140,12 +138,22 @@
   <p id="placeholder">Select a player to view their roster.</p>
 
   <div id="app">
-    <div id="player-name"></div>
+    <div id="header">
+      <div id="player-name"></div>
+      <div id="last-updated"></div>
+    </div>
     <div id="roster-summary"></div>
 
     <div id="controls">
       <input id="search" type="text" placeholder="Search characters…">
-      <div id="filter-buttons"></div>
+      <div class="filter-row">
+        <span class="filter-label">Tier</span>
+        <div id="tier-filters" style="display:contents"></div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">Role</span>
+        <div id="role-filters" style="display:contents"></div>
+      </div>
     </div>
 
     <div id="roster">
@@ -154,11 +162,95 @@
   </div>
 
   <script>
-    // ── Tier grouping — proxy for faction until faction data exists ──────────
-    // Each tier maps to a set of ascension levels. When you add a real faction
-    // field to the JSON, replace getTier() and TIERS with the faction values.
-    const TIERS = ['Paragon', 'Supreme+', 'Supreme', 'Mythic+', 'Mythic', 'Legendary', 'Epic'];
+    // ── Configuration ─────────────────────────────────────────────────────────
+    // Match these to your Grist table and column IDs exactly.
+    // Column IDs are the lowercase/underscored names shown in column options.
+    const CHARACTERS_TABLE    = 'Characters';
+    const CHARACTERS_NAME_COL = 'character_name';
+    const CHARACTERS_ROLE_COL = 'role';
+    // Faction column — not used for filtering yet, but loaded for future use
+    const CHARACTERS_FACTION_COL = 'faction';
 
+    // Tier grouping — proxy for faction until faction data is in the Characters table.
+    // To switch to real factions: replace TIERS with your faction names and
+    // replace the getTier() function with one that reads char.faction instead.
+    const TIERS = ['Paragon','Supreme+','Supreme','Mythic+','Mythic','Legendary','Epic'];
+    const ROLES = ['mage','marksman','support','tank','warrior','rogue'];
+
+    // ── State ─────────────────────────────────────────────────────────────────
+    let fullRoster        = [];
+    let characterMeta     = {};   // { "Aether": { role: "mage", faction: "..." } }
+    let activeTierFilters = new Set();
+    let activeRoleFilters = new Set();
+    let searchTerm        = '';
+    let lastMapped        = null; // last mapped record, for re-render after meta loads
+
+    // ── Grist setup ───────────────────────────────────────────────────────────
+    grist.ready({
+      requiredAccess: 'read table',
+      columns: [
+        { name: 'player_name',  title: 'Player Name',  type: 'Text'     },
+        { name: 'roster',       title: 'Roster JSON',  type: 'Text'     },
+        { name: 'last_updated', title: 'Last Updated', type: 'DateTime' },
+      ]
+    });
+
+    grist.onRecord(function(record, mappings) {
+      const mapped = mappings ? grist.mapColumnNames(record, mappings) : record;
+      lastMapped = mapped;
+
+      try { fullRoster = JSON.parse(mapped.roster || '[]'); }
+      catch(e) { fullRoster = []; }
+
+      // Reset state on player change
+      searchTerm = '';
+      activeTierFilters.clear();
+      activeRoleFilters.clear();
+      document.getElementById('search').value = '';
+      syncButtons();
+
+      document.getElementById('player-name').textContent =
+        mapped.player_name || '(no name)';
+
+      const dateStr = formatDate(mapped.last_updated);
+      document.getElementById('last-updated').textContent =
+        dateStr ? 'Updated ' + dateStr : '';
+
+      const hasData = fullRoster.length > 0;
+      document.getElementById('placeholder').style.display = hasData ? 'none' : 'block';
+      document.getElementById('placeholder').textContent   = 'No roster data for this player.';
+      document.getElementById('app').classList.toggle('visible', hasData);
+
+      renderRoster();
+    });
+
+    // ── Load character metadata from Grist ────────────────────────────────────
+    async function loadCharacterMeta() {
+      try {
+        const table = await grist.docApi.fetchTable(CHARACTERS_TABLE);
+        const names    = table[CHARACTERS_NAME_COL]    || [];
+        const roles    = table[CHARACTERS_ROLE_COL]    || [];
+        const factions = table[CHARACTERS_FACTION_COL] || [];
+
+        characterMeta = {};
+        for (let i = 0; i < names.length; i++) {
+          if (names[i]) {
+            characterMeta[String(names[i])] = {
+              role:    String(roles[i]    || '').toLowerCase().trim(),
+              faction: String(factions[i] || '').toLowerCase().trim(),
+            };
+          }
+        }
+        // Re-render now that we have role data
+        if (lastMapped) renderRoster();
+      } catch(e) {
+        // Characters table not found or columns missing — role filters
+        // will silently match nothing. Check CHARACTERS_TABLE / column IDs above.
+        console.warn('Could not load Characters table:', e.message);
+      }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
     function getTier(ascension) {
       const a = (ascension || '').toLowerCase().trim();
       if (a.startsWith('paragon'))   return 'Paragon';
@@ -170,150 +262,126 @@
       return 'Epic';
     }
 
-    // ── Widget state ─────────────────────────────────────────────────────────
-    let fullRoster   = [];   // all characters for the current player
-    let activeFilters = new Set();
-    let searchTerm   = '';
+    function getRole(name) {
+      return (characterMeta[name] && characterMeta[name].role) || '';
+    }
 
-    // ── Grist setup ──────────────────────────────────────────────────────────
-    // `columns` tells Grist which fields to expose for mapping.
-    // The user connects these to their actual column names in the widget panel.
-    grist.ready({
-      requiredAccess: 'read table',
-      columns: [
-        { name: 'player_name', title: 'Player Name', type: 'Text' },
-        { name: 'roster',      title: 'Roster JSON', type: 'Text'  }
-      ]
-    });
+    function formatDate(value) {
+      if (!value) return null;
+      const d = typeof value === 'number' ? new Date(value * 1000) : new Date(value);
+      if (isNaN(d.getTime())) return String(value);
+      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    }
 
-    // Fires whenever the selected row in the linked Players table changes.
-    grist.onRecord(function(record, mappings) {
-      const mapped = mappings ? grist.mapColumnNames(record, mappings) : record;
+    // ── Filter buttons ────────────────────────────────────────────────────────
+    function buildButtons() {
+      const tierContainer = document.getElementById('tier-filters');
+      const roleContainer = document.getElementById('role-filters');
 
-      // Parse roster JSON
-      try {
-        fullRoster = JSON.parse(mapped.roster || '[]');
-      } catch(e) {
-        fullRoster = [];
-      }
+      TIERS.forEach(tier =>
+        tierContainer.appendChild(makeBtn(tier, tier, activeTierFilters))
+      );
+      tierContainer.appendChild(makeClearBtn(activeTierFilters));
 
-      // Reset search and filters on player change so you start fresh
-      searchTerm = '';
-      activeFilters.clear();
-      document.getElementById('search').value = '';
-      syncFilterButtons();
-
-      // Player name — now comes from the mapped column, not a hardcoded field
-      document.getElementById('player-name').textContent =
-        mapped.player_name || '(no name)';
-
-      renderRoster();
-
-      // Toggle main content vs placeholder
-      const hasData = fullRoster.length > 0;
-      document.getElementById('placeholder').style.display = hasData ? 'none' : 'block';
-      document.getElementById('placeholder').textContent   = 'No roster data for this player.';
-      document.getElementById('app').classList.toggle('visible', hasData);
-    });
-
-
-    // ── Filter buttons ───────────────────────────────────────────────────────
-    // Built once on load — they don't change, only their active state does.
-    function buildFilterButtons() {
-      const container = document.getElementById('filter-buttons');
-
-      TIERS.forEach(tier => {
-        const btn = document.createElement('button');
-        btn.className    = 'filter-btn';
-        btn.dataset.tier = tier;
-        btn.textContent  = tier;
-        btn.addEventListener('click', () => {
-          if (activeFilters.has(tier)) {
-            activeFilters.delete(tier);
-          } else {
-            activeFilters.add(tier);
-          }
-          syncFilterButtons();
-          renderRoster();
-        });
-        container.appendChild(btn);
+      ROLES.forEach(role => {
+        const label = role.charAt(0).toUpperCase() + role.slice(1);
+        roleContainer.appendChild(makeBtn(role, label, activeRoleFilters));
       });
+      roleContainer.appendChild(makeClearBtn(activeRoleFilters));
+    }
 
-      // Clear button — shown only when at least one filter is active
-      const clear = document.createElement('button');
-      clear.id          = 'clear-btn';
-      clear.textContent = '✕ clear';
-      clear.addEventListener('click', () => {
-        activeFilters.clear();
-        syncFilterButtons();
+    function makeBtn(value, label, activeSet) {
+      const btn = document.createElement('button');
+      btn.className       = 'filter-btn';
+      btn.dataset.value   = value;
+      btn.dataset.setId   = activeSet === activeTierFilters ? 'tier' : 'role';
+      btn.textContent     = label;
+      btn.addEventListener('click', () => {
+        if (activeSet.has(value)) activeSet.delete(value);
+        else                      activeSet.add(value);
+        syncButtons();
         renderRoster();
       });
-      container.appendChild(clear);
+      return btn;
     }
 
-    // Update visual state of buttons to match activeFilters
-    function syncFilterButtons() {
-      document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.toggle('active', activeFilters.has(btn.dataset.tier));
+    function makeClearBtn(activeSet) {
+      const btn = document.createElement('button');
+      btn.className     = 'clear-btn';
+      btn.dataset.setId = activeSet === activeTierFilters ? 'tier' : 'role';
+      btn.textContent   = '✕ clear';
+      btn.style.display = 'none';
+      btn.addEventListener('click', () => {
+        activeSet.clear();
+        syncButtons();
+        renderRoster();
       });
-      // Show/hide clear button
-      document.getElementById('clear-btn').style.display =
-        activeFilters.size > 0 ? 'inline-block' : 'none';
+      return btn;
     }
 
+    function syncButtons() {
+      document.querySelectorAll('.filter-btn[data-set-id="tier"]').forEach(btn =>
+        btn.classList.toggle('active', activeTierFilters.has(btn.dataset.value))
+      );
+      document.querySelectorAll('.filter-btn[data-set-id="role"]').forEach(btn =>
+        btn.classList.toggle('active', activeRoleFilters.has(btn.dataset.value))
+      );
+      document.querySelector('.clear-btn[data-set-id="tier"]').style.display =
+        activeTierFilters.size > 0 ? 'inline-block' : 'none';
+      document.querySelector('.clear-btn[data-set-id="role"]').style.display =
+        activeRoleFilters.size > 0 ? 'inline-block' : 'none';
+    }
 
-    // ── Render ───────────────────────────────────────────────────────────────
+    // ── Render ────────────────────────────────────────────────────────────────
     function renderRoster() {
       const rosterEl  = document.getElementById('roster');
       const summaryEl = document.getElementById('roster-summary');
       const noResults = document.getElementById('no-results');
 
-      // Filter by active tier buttons AND search term
       const filtered = fullRoster.filter(char => {
         const nameMatch = (char.name || '').toLowerCase().includes(searchTerm);
-        const tierMatch = activeFilters.size === 0 || activeFilters.has(getTier(char.ascension));
-        return nameMatch && tierMatch;
+        const tierMatch = activeTierFilters.size === 0 ||
+                          activeTierFilters.has(getTier(char.ascension));
+        const roleMatch = activeRoleFilters.size === 0 ||
+                          activeRoleFilters.has(getRole(char.name));
+        return nameMatch && tierMatch && roleMatch;
       });
 
-      // Summary line
-      const filterActive = activeFilters.size > 0 || searchTerm;
+      const filterActive = activeTierFilters.size > 0 || activeRoleFilters.size > 0 || searchTerm;
       summaryEl.textContent = filterActive
-        ? `${filtered.length} of ${fullRoster.length} characters`
-        : `${fullRoster.length} character${fullRoster.length !== 1 ? 's' : ''}`;
+        ? filtered.length + ' of ' + fullRoster.length + ' characters'
+        : fullRoster.length + ' character' + (fullRoster.length !== 1 ? 's' : '');
 
-      // Clear old cards, keep the no-results node
       Array.from(rosterEl.children).forEach(child => {
         if (child.id !== 'no-results') child.remove();
       });
 
-      if (filtered.length === 0) {
-        noResults.style.display = 'block';
-        return;
-      }
+      if (filtered.length === 0) { noResults.style.display = 'block'; return; }
       noResults.style.display = 'none';
 
       filtered.forEach(char => {
-        const card = document.createElement('div');
-        card.className = `card ${getTier(char.ascension) === 'Paragon' ? 'paragon' : ''}`;
-        card.innerHTML = `
-          <div class="card-name">${char.name || '—'}</div>
-          <div class="card-row">Ascension: <span>${char.ascension || '—'}</span></div>
-          <div class="card-row">Equipment: <span>${char.equipment ?? '—'}</span></div>
-        `;
+        const role      = getRole(char.name);
+        const isParagon = getTier(char.ascension) === 'Paragon';
+        const card      = document.createElement('div');
+        card.className  = 'card' + (isParagon ? ' paragon' : '');
+        card.innerHTML  =
+          '<div class="card-name">' + (char.name || '—') + '</div>' +
+          (role ? '<div class="card-role ' + role + '">' + role + '</div>' : '') +
+          '<div class="card-row">Ascension: <span>' + (char.ascension || '—') + '</span></div>' +
+          '<div class="card-row">Equipment: <span>' + (char.equipment ?? '—') + '</span></div>';
         rosterEl.appendChild(card);
       });
     }
 
-
-    // ── Search input ─────────────────────────────────────────────────────────
+    // ── Search ────────────────────────────────────────────────────────────────
     document.getElementById('search').addEventListener('input', function() {
       searchTerm = this.value.toLowerCase().trim();
       renderRoster();
     });
 
-
-    // ── Init ─────────────────────────────────────────────────────────────────
-    buildFilterButtons();
+    // ── Init ──────────────────────────────────────────────────────────────────
+    buildButtons();
+    loadCharacterMeta();
   </script>
 
 </body>

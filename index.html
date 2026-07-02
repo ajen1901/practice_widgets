@@ -188,7 +188,7 @@
 
     // Fires whenever the selected row in the linked Players table changes.
     grist.onRecord(function(record, mappings) {
-      const mapped = grist.mapColumnNames(record, mappings);
+      const mapped = mappings ? grist.mapColumnNames(record, mappings) : record;
 
       // Parse roster JSON
       try {

@@ -11,26 +11,21 @@
     body {
       font-family: Arial, sans-serif;
       font-size: 13px;
-      background: #1a1a2e;
-      color: #e0e0e0;
+      background: #F3F4F6;
+      color: #111827;
       padding: 12px;
       min-height: 100vh;
     }
 
-    #placeholder { color: #555; padding: 32px; text-align: center; }
+    #placeholder { color: #9CA3AF; padding: 32px; text-align: center; }
     #app { display: none; }
     #app.visible { display: block; }
 
     /* ── Header ── */
-    #header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 4px;
-    }
-    #player-name   { font-size: 18px; font-weight: bold; color: #7eb8f7; }
-    #last-updated  { font-size: 11px; color: #555; }
-    #roster-summary { font-size: 11px; color: #666; margin-bottom: 10px; }
+    #header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+    #player-name  { font-size: 18px; font-weight: bold; color: #166534; }
+    #last-updated { font-size: 11px; color: #9CA3AF; }
+    #roster-summary { font-size: 11px; color: #9CA3AF; margin-bottom: 10px; }
 
     /* ── Controls ── */
     #controls { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
@@ -38,17 +33,16 @@
     #search {
       width: 100%;
       padding: 7px 10px;
-      background: #16213e;
-      border: 1px solid #2d2d4e;
+      background: #FFFFFF;
+      border: 1px solid #D1D5DB;
       border-radius: 5px;
-      color: #e0e0e0;
+      color: #111827;
       font-size: 12px;
       outline: none;
     }
-    #search:focus     { border-color: #7eb8f7; }
-    #search::placeholder { color: #444; }
+    #search:focus { border-color: #16A34A; }
+    #search::placeholder { color: #9CA3AF; }
 
-    /* ── Filter / sort rows ── */
     .control-row {
       display: flex;
       align-items: center;
@@ -58,87 +52,94 @@
     }
     .control-label {
       font-size: 10px;
-      color: #555;
+      color: #9CA3AF;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      min-width: 36px;
+      min-width: 52px;
       flex-shrink: 0;
     }
 
-    /* shared pill style for both filter and sort buttons */
     .pill {
       padding: 3px 10px;
       border-radius: 20px;
-      border: 1px solid #2d2d4e;
-      background: #16213e;
-      color: #888;
+      border: 1px solid #D1D5DB;
+      background: #FFFFFF;
+      color: #6B7280;
       font-size: 11px;
       cursor: pointer;
       transition: all 0.12s;
       white-space: nowrap;
       user-select: none;
     }
-    .pill:hover  { border-color: #7eb8f7; color: #ccc; }
-    .pill.active { background: #2d6a9f; border-color: #7eb8f7; color: #fff; }
+    .pill:hover  { border-color: #16A34A; color: #374151; }
+    .pill.active { background: #16A34A; border-color: #16A34A; color: #FFFFFF; }
 
     .clear-btn {
       padding: 3px 8px;
       border-radius: 20px;
       border: 1px solid transparent;
       background: transparent;
-      color: #555;
+      color: #9CA3AF;
       font-size: 11px;
       cursor: pointer;
-      transition: color 0.12s;
     }
-    .clear-btn:hover { color: #aaa; }
+    .clear-btn:hover { color: #6B7280; }
 
-    .loading-hint { font-size: 11px; color: #444; font-style: italic; }
+    .loading-hint { font-size: 11px; color: #9CA3AF; font-style: italic; }
 
-    /* ── Cards ── */
-    #roster {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
-      gap: 8px;
-    }
+    /* ── Card grid ── */
+    #roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 8px; }
+
+    /* wrapper supplies the ascension "border" via background + padding */
+    .card-wrapper { border-radius: 8px; padding: 3px; }
+
     .card {
-      background: #16213e;
-      border: 1px solid #2d2d4e;
-      border-radius: 6px;
-      padding: 10px;
+      background: #FFFFFF;
+      border-radius: 5px;
+      overflow: hidden;
     }
-    .card.paragon { border-color: #c8961a; }
+
+    /* Portrait: full-width image at the top of the card */
+    .card-portrait {
+      width: 100%;
+      height: 90px;
+      object-fit: cover;
+      display: block;
+      background: #F9FAFB;
+    }
+
+    .card-body { padding: 8px 10px 10px; }
+
     .card-name {
       font-weight: bold;
       font-size: 13px;
-      color: #fff;
-      margin-bottom: 5px;
+      color: #111827;
+      margin-bottom: 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .card.paragon .card-name { color: #f0c040; }
 
-    .card-role {
+    /* Row of faction + class icons below the name */
+    .card-meta-icons { display: flex; gap: 4px; margin-bottom: 6px; align-items: center; }
+
+    .meta-icon { width: 18px; height: 18px; object-fit: contain; }
+
+    /* Text fallback pill shown when an icon URL is missing or fails to load */
+    .meta-pill {
       display: inline-block;
       font-size: 10px;
-      padding: 1px 7px;
+      padding: 1px 6px;
       border-radius: 10px;
-      margin-bottom: 5px;
-      font-weight: bold;
-      text-transform: capitalize;
+      background: #F3F4F6;
+      color: #6B7280;
+      border: 1px solid #E5E7EB;
     }
-    .card-role.mage      { background: #2d1f5e; color: #b39ddb; }
-    .card-role.marksman  { background: #1a3d2b; color: #80cbc4; }
-    .card-role.support   { background: #1a2f4a; color: #81d4fa; }
-    .card-role.tank      { background: #3d2b1a; color: #ffcc80; }
-    .card-role.warrior   { background: #3d1a1a; color: #ef9a9a; }
-    .card-role.rogue     { background: #252525; color: #b0bec5; }
 
-    .card-row { font-size: 11px; color: #888; margin-bottom: 2px; }
-    .card-row span { color: #7eb8f7; font-weight: bold; }
+    .card-row { font-size: 11px; color: #6B7280; margin-bottom: 2px; }
+    .card-row span { color: #15803D; font-weight: bold; }
 
-    #no-results { color: #444; text-align: center; padding: 24px; display: none; }
+    #no-results { color: #9CA3AF; text-align: center; padding: 24px; display: none; }
   </style>
 </head>
 <body>
@@ -159,16 +160,14 @@
         <span class="control-label">Sort</span>
         <div id="sort-controls" style="display:contents"></div>
       </div>
-
       <div class="control-row">
         <span class="control-label">Faction</span>
         <div id="faction-filters" style="display:contents">
           <span class="loading-hint">loading\u2026</span>
         </div>
       </div>
-
       <div class="control-row">
-        <span class="control-label">Role</span>
+        <span class="control-label">Class</span>
         <div id="role-filters" style="display:contents"></div>
       </div>
     </div>
@@ -180,32 +179,66 @@
 
   <script>
     // ── Configuration ─────────────────────────────────────────────────────────
-    // Adjust these to match your Grist column IDs if they differ.
+    // Adjust these constants to match your Grist column IDs.
+    // Column IDs appear in the column options panel (lowercase, underscored).
+    // Note: Icon columns must be Text columns containing URLs.
+    // Grist Attachment columns are not supported here.
+
     const CHARACTERS_TABLE       = 'Characters';
     const CHARACTERS_NAME_COL    = 'character_name';
     const CHARACTERS_ROLE_COL    = 'role';
     const CHARACTERS_FACTION_COL = 'faction';
+    const CHARACTERS_PORTRAIT_COL = 'portrait';   // URL; omit column to skip portraits
 
-    const ROLES = ['mage','marksman','support','tank','warrior','rogue'];
+    const FACTIONS_TABLE    = 'Factions';
+    const FACTIONS_NAME_COL = 'faction';           // column holding the faction name
+    const FACTIONS_ICON_COL = 'Icon';
 
-    // Defines the sort order for ascension levels — extend if new tiers are added.
+    const CLASSES_TABLE    = 'Classes';
+    const CLASSES_NAME_COL = 'class';              // adjust if named differently (role, name, etc.)
+    const CLASSES_ICON_COL = 'Icon';
+
+    const CLASSES = ['mage','marksman','support','tank','warrior','rogue'];
+
+    // Ascension sort order — extend if new tiers are added
     const ASCENSION_ORDER = {
-      'epic':0, 'epic+':1, 'legendary':2, 'legendary+':3,
-      'mythic':4, 'mythic+':5, 'supreme':6, 'supreme+':7,
-      'paragon 1':8, 'paragon 2':9, 'paragon 3':10, 'paragon 4':11
+      'rare':0, 'elite':1,
+      'epic':2, 'epic+':3, 'legendary':4, 'legendary+':5,
+      'mythic':6, 'mythic+':7, 'supreme':8, 'supreme+':9,
+      'paragon 1':10, 'paragon 2':11, 'paragon 3':12, 'paragon 4':13
+    };
+
+    // Ascension border colors (the card-wrapper background shows as a border via padding)
+    const ASCENSION_BORDER = {
+      'rare':       '#87CEEB',
+      'elite':      '#7B2FBE',
+      'epic':       '#F59E0B',
+      'epic+':      'linear-gradient(135deg,#F59E0B,#DC2626)',
+      'legendary':  '#DC2626',
+      'legendary+': 'linear-gradient(135deg,#DC2626,#D4D4D4)',
+      'mythic':     '#D4D4D4',
+      'mythic+':    'linear-gradient(135deg,#D4D4D4,#C084FC)',
+      'supreme':    'linear-gradient(135deg,#C084FC,#67E8F9,#A78BFA)',
+      'supreme+':   'linear-gradient(135deg,#A78BFA,#67E8F9,#C084FC,#A3E635)',
+      'paragon 1':  'linear-gradient(135deg,#9333EA,#D4AF37)',
+      'paragon 2':  '#D4AF37',
+      'paragon 3':  'linear-gradient(135deg,#DC2626,#D4AF37)',
+      'paragon 4':  'linear-gradient(135deg,#D4D4D4,#D4AF37)',
     };
 
     const SORT_OPTIONS = [
-      { value:'ascension', label:'Ascension' },
+      { value:'ascension', label:'Ascension'  },
       { value:'name',      label:'Name A\u2192Z' },
-      { value:'equipment', label:'Equipment' },
+      { value:'equipment', label:'Equipment'  },
     ];
 
     // ── State ─────────────────────────────────────────────────────────────────
     let fullRoster           = [];
-    let characterMeta        = {};   // { "Aether": { role: "mage", faction: "light" } }
+    let characterMeta        = {};   // { "Aether": { role, faction, portrait } }
+    let factionIcons         = {};   // { "light": "https://..." }
+    let classIcons           = {};   // { "mage":  "https://..." }
     let activeFactionFilters = new Set();
-    let activeRoleFilters    = new Set();
+    let activeClassFilters   = new Set();
     let searchTerm           = '';
     let sortMode             = 'ascension';
     let lastMapped           = null;
@@ -227,10 +260,9 @@
       try   { fullRoster = JSON.parse(mapped.roster || '[]'); }
       catch { fullRoster = []; }
 
-      // Reset interactive state on player change
       searchTerm = '';
       activeFactionFilters.clear();
-      activeRoleFilters.clear();
+      activeClassFilters.clear();
       document.getElementById('search').value = '';
       sortMode = 'ascension';
       syncAllButtons();
@@ -250,30 +282,59 @@
       renderRoster();
     });
 
-    // ── Character metadata (role + faction from Grist Characters table) ───────
-    async function loadCharacterMeta() {
-      try {
-        const table   = await grist.docApi.fetchTable(CHARACTERS_TABLE);
-        const names   = table[CHARACTERS_NAME_COL]    || [];
-        const roles   = table[CHARACTERS_ROLE_COL]    || [];
-        const factions = table[CHARACTERS_FACTION_COL] || [];
+    // ── Load all metadata ─────────────────────────────────────────────────────
+    async function safeTable(name) {
+      try   { return await grist.docApi.fetchTable(name); }
+      catch(e) { console.warn('Table "' + name + '" unavailable:', e.message); return null; }
+    }
 
+    async function loadAllMeta() {
+      const [charTable, factionTable, classTable] = await Promise.all([
+        safeTable(CHARACTERS_TABLE),
+        safeTable(FACTIONS_TABLE),
+        safeTable(CLASSES_TABLE),
+      ]);
+
+      // Characters: role, faction, portrait
+      if (charTable) {
+        const names     = charTable[CHARACTERS_NAME_COL]     || [];
+        const roles     = charTable[CHARACTERS_ROLE_COL]     || [];
+        const factions  = charTable[CHARACTERS_FACTION_COL]  || [];
+        const portraits = charTable[CHARACTERS_PORTRAIT_COL] || [];
         characterMeta = {};
         for (let i = 0; i < names.length; i++) {
           if (names[i]) {
             characterMeta[String(names[i])] = {
-              role:    String(roles[i]    || '').toLowerCase().trim(),
-              faction: String(factions[i] || '').toLowerCase().trim(),
+              role:     String(roles[i]    || '').toLowerCase().trim(),
+              faction:  String(factions[i] || '').toLowerCase().trim(),
+              portrait: String(portraits[i] || '').trim() || null,
             };
           }
         }
         buildFactionButtons();
-        if (lastMapped) renderRoster();
-      } catch(e) {
-        document.getElementById('faction-filters').innerHTML =
-          '<span class="loading-hint">Characters table not found \u2014 check config</span>';
-        console.warn('Could not load Characters table:', e.message);
       }
+
+      // Faction icons
+      if (factionTable) {
+        const names = factionTable[FACTIONS_NAME_COL] || [];
+        const icons = factionTable[FACTIONS_ICON_COL] || [];
+        factionIcons = {};
+        for (let i = 0; i < names.length; i++) {
+          if (names[i]) factionIcons[String(names[i]).toLowerCase().trim()] = icons[i] || null;
+        }
+      }
+
+      // Class icons
+      if (classTable) {
+        const names = classTable[CLASSES_NAME_COL] || [];
+        const icons = classTable[CLASSES_ICON_COL] || [];
+        classIcons = {};
+        for (let i = 0; i < names.length; i++) {
+          if (names[i]) classIcons[String(names[i]).toLowerCase().trim()] = icons[i] || null;
+        }
+      }
+
+      if (lastMapped) renderRoster();
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -281,8 +342,9 @@
       return (characterMeta[name] && characterMeta[name][key]) || '';
     }
 
-    function isParagon(ascension) {
-      return (ascension || '').toLowerCase().startsWith('paragon');
+    function getAscensionBorder(ascension) {
+      const key = (ascension || '').toLowerCase().trim();
+      return ASCENSION_BORDER[key] || '#E5E7EB';
     }
 
     function formatDate(value) {
@@ -293,23 +355,96 @@
     }
 
     function capitalize(str) {
-      return str.charAt(0).toUpperCase() + str.slice(1);
+      return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
     }
 
     // ── Sorting ───────────────────────────────────────────────────────────────
     function sortedRoster(roster) {
       return [...roster].sort((a, b) => {
-        if (sortMode === 'name') {
-          return (a.name || '').localeCompare(b.name || '');
-        }
-        if (sortMode === 'equipment') {
-          return (b.equipment || 0) - (a.equipment || 0);
-        }
-        // Ascension: highest tier first; unknown ascensions go to the bottom
+        if (sortMode === 'name') return (a.name || '').localeCompare(b.name || '');
+        if (sortMode === 'equipment') return (b.equipment || 0) - (a.equipment || 0);
+        // Ascension descending (highest first); unknowns go to the bottom
         const ai = ASCENSION_ORDER[(a.ascension || '').toLowerCase()] ?? -1;
         const bi = ASCENSION_ORDER[(b.ascension || '').toLowerCase()] ?? -1;
         return bi - ai;
       });
+    }
+
+    // ── Card builder ──────────────────────────────────────────────────────────
+    function buildCard(char) {
+      const wrapper = document.createElement('div');
+      wrapper.className      = 'card-wrapper';
+      wrapper.style.background = getAscensionBorder(char.ascension);
+
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      // Portrait (only if URL available)
+      const portraitUrl = getMeta(char.name, 'portrait');
+      if (portraitUrl) {
+        const img = document.createElement('img');
+        img.className = 'card-portrait';
+        img.src = portraitUrl;
+        img.alt = char.name || '';
+        img.onerror = () => img.style.display = 'none';
+        card.appendChild(img);
+      }
+
+      const body = document.createElement('div');
+      body.className = 'card-body';
+
+      // Name
+      const nameEl = document.createElement('div');
+      nameEl.className   = 'card-name';
+      nameEl.textContent = char.name || '\u2014';
+      body.appendChild(nameEl);
+
+      // Faction + class icons
+      const faction = getMeta(char.name, 'faction');
+      const role    = getMeta(char.name, 'role');
+      if (faction || role) {
+        const iconsRow = document.createElement('div');
+        iconsRow.className = 'card-meta-icons';
+        if (faction) iconsRow.appendChild(makeMetaIcon(faction, factionIcons[faction]));
+        if (role)    iconsRow.appendChild(makeMetaIcon(role,    classIcons[role]));
+        body.appendChild(iconsRow);
+      }
+
+      // Ascension + equipment
+      const ascRow = document.createElement('div');
+      ascRow.className = 'card-row';
+      ascRow.innerHTML = 'Ascension: <span>' + (char.ascension || '\u2014') + '</span>';
+      body.appendChild(ascRow);
+
+      const eqRow = document.createElement('div');
+      eqRow.className = 'card-row';
+      eqRow.innerHTML = 'Equipment: <span>' + (char.equipment ?? '\u2014') + '</span>';
+      body.appendChild(eqRow);
+
+      card.appendChild(body);
+      wrapper.appendChild(card);
+      return wrapper;
+    }
+
+    function makeMetaIcon(label, iconUrl) {
+      if (iconUrl) {
+        const img = document.createElement('img');
+        img.className = 'meta-icon';
+        img.src   = iconUrl;
+        img.title = capitalize(label);
+        img.alt   = label;
+        // Fall back to text pill if image fails
+        img.onerror = () => img.replaceWith(makeTextPill(label));
+        return img;
+      }
+      return makeTextPill(label);
+    }
+
+    function makeTextPill(label) {
+      const span = document.createElement('span');
+      span.className   = 'meta-pill';
+      span.textContent = capitalize(label);
+      return span;
     }
 
     // ── Button builders ───────────────────────────────────────────────────────
@@ -317,9 +452,9 @@
       const container = document.getElementById('sort-controls');
       SORT_OPTIONS.forEach(opt => {
         const btn = document.createElement('button');
-        btn.className      = 'pill';
-        btn.dataset.sort   = opt.value;
-        btn.textContent    = opt.label;
+        btn.className     = 'pill';
+        btn.dataset.sort  = opt.value;
+        btn.textContent   = opt.label;
         if (opt.value === sortMode) btn.classList.add('active');
         btn.addEventListener('click', () => {
           sortMode = opt.value;
@@ -333,37 +468,33 @@
     function buildFactionButtons() {
       const container = document.getElementById('faction-filters');
       container.innerHTML = '';
-
-      // Derive unique faction names from loaded metadata, sorted alphabetically
       const factions = [...new Set(
         Object.values(characterMeta).map(m => m.faction).filter(Boolean)
       )].sort();
-
       if (factions.length === 0) {
-        container.innerHTML = '<span class="loading-hint">no faction data in Characters table</span>';
+        container.innerHTML = '<span class="loading-hint">no faction data found</span>';
         return;
       }
-
-      factions.forEach(faction =>
-        container.appendChild(makeFilterBtn(faction, capitalize(faction), activeFactionFilters, 'faction'))
-      );
+      factions.forEach(f => container.appendChild(
+        makeFilterBtn(f, capitalize(f), activeFactionFilters, 'faction')
+      ));
       container.appendChild(makeClearBtn(activeFactionFilters, 'faction'));
     }
 
-    function buildRoleButtons() {
+    function buildClassButtons() {
       const container = document.getElementById('role-filters');
-      ROLES.forEach(role =>
-        container.appendChild(makeFilterBtn(role, capitalize(role), activeRoleFilters, 'role'))
-      );
-      container.appendChild(makeClearBtn(activeRoleFilters, 'role'));
+      CLASSES.forEach(cls => container.appendChild(
+        makeFilterBtn(cls, capitalize(cls), activeClassFilters, 'class')
+      ));
+      container.appendChild(makeClearBtn(activeClassFilters, 'class'));
     }
 
     function makeFilterBtn(value, label, activeSet, groupId) {
       const btn = document.createElement('button');
-      btn.className      = 'pill';
-      btn.dataset.value  = value;
-      btn.dataset.group  = groupId;
-      btn.textContent    = label;
+      btn.className     = 'pill';
+      btn.dataset.value = value;
+      btn.dataset.group = groupId;
+      btn.textContent   = label;
       btn.addEventListener('click', () => {
         if (activeSet.has(value)) activeSet.delete(value);
         else                      activeSet.add(value);
@@ -375,10 +506,10 @@
 
     function makeClearBtn(activeSet, groupId) {
       const btn = document.createElement('button');
-      btn.className      = 'clear-btn';
-      btn.dataset.clear  = groupId;
-      btn.textContent    = '\u2715 clear';
-      btn.style.display  = 'none';
+      btn.className     = 'clear-btn';
+      btn.dataset.clear = groupId;
+      btn.textContent   = '\u2715 clear';
+      btn.style.display = 'none';
       btn.addEventListener('click', () => {
         activeSet.clear();
         syncAllButtons();
@@ -388,24 +519,19 @@
     }
 
     function syncAllButtons() {
-      // Sort buttons
       document.querySelectorAll('[data-sort]').forEach(btn =>
         btn.classList.toggle('active', btn.dataset.sort === sortMode)
       );
-      // Faction filter buttons + clear
       document.querySelectorAll('[data-group="faction"]').forEach(btn =>
         btn.classList.toggle('active', activeFactionFilters.has(btn.dataset.value))
       );
-      const factionClear = document.querySelector('[data-clear="faction"]');
-      if (factionClear) factionClear.style.display =
-        activeFactionFilters.size > 0 ? 'inline-block' : 'none';
-      // Role filter buttons + clear
-      document.querySelectorAll('[data-group="role"]').forEach(btn =>
-        btn.classList.toggle('active', activeRoleFilters.has(btn.dataset.value))
+      document.querySelectorAll('[data-group="class"]').forEach(btn =>
+        btn.classList.toggle('active', activeClassFilters.has(btn.dataset.value))
       );
-      const roleClear = document.querySelector('[data-clear="role"]');
-      if (roleClear) roleClear.style.display =
-        activeRoleFilters.size > 0 ? 'inline-block' : 'none';
+      const fc = document.querySelector('[data-clear="faction"]');
+      if (fc) fc.style.display = activeFactionFilters.size > 0 ? 'inline-block' : 'none';
+      const cc = document.querySelector('[data-clear="class"]');
+      if (cc) cc.style.display = activeClassFilters.size > 0 ? 'inline-block' : 'none';
     }
 
     // ── Render ────────────────────────────────────────────────────────────────
@@ -418,12 +544,12 @@
         const nameMatch    = (char.name || '').toLowerCase().includes(searchTerm);
         const factionMatch = activeFactionFilters.size === 0 ||
                              activeFactionFilters.has(getMeta(char.name, 'faction'));
-        const roleMatch    = activeRoleFilters.size === 0 ||
-                             activeRoleFilters.has(getMeta(char.name, 'role'));
-        return nameMatch && factionMatch && roleMatch;
+        const classMatch   = activeClassFilters.size === 0 ||
+                             activeClassFilters.has(getMeta(char.name, 'role'));
+        return nameMatch && factionMatch && classMatch;
       });
 
-      const filterActive = activeFactionFilters.size > 0 || activeRoleFilters.size > 0 || searchTerm;
+      const filterActive = activeFactionFilters.size > 0 || activeClassFilters.size > 0 || searchTerm;
       summaryEl.textContent = filterActive
         ? filtered.length + ' of ' + fullRoster.length + ' characters'
         : fullRoster.length + ' character' + (fullRoster.length !== 1 ? 's' : '');
@@ -433,17 +559,7 @@
       if (filtered.length === 0) { noResults.style.display = 'block'; return; }
       noResults.style.display = 'none';
 
-      filtered.forEach(char => {
-        const role = getMeta(char.name, 'role');
-        const card = document.createElement('div');
-        card.className = 'card' + (isParagon(char.ascension) ? ' paragon' : '');
-        card.innerHTML =
-          '<div class="card-name">' + (char.name || '\u2014') + '</div>' +
-          (role ? '<div class="card-role ' + role + '">' + role + '</div>' : '') +
-          '<div class="card-row">Ascension: <span>' + (char.ascension || '\u2014') + '</span></div>' +
-          '<div class="card-row">Equipment: <span>' + (char.equipment ?? '\u2014') + '</span></div>';
-        rosterEl.appendChild(card);
-      });
+      filtered.forEach(char => rosterEl.appendChild(buildCard(char)));
     }
 
     // ── Search ────────────────────────────────────────────────────────────────
@@ -454,8 +570,8 @@
 
     // ── Init ──────────────────────────────────────────────────────────────────
     buildSortButtons();
-    buildRoleButtons();
-    loadCharacterMeta();   // also calls buildFactionButtons() once data arrives
+    buildClassButtons();
+    loadAllMeta();
   </script>
 
 </body>

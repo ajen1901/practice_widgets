@@ -154,7 +154,7 @@
     <div id="roster-summary"></div>
 
     <div id="controls">
-      <input id="search" type="text" placeholder="Search characters">
+      <input id="search" type="text" placeholder="Search characters\u2026">
 
       <div class="control-row">
         <span class="control-label">Sort</span>
@@ -259,13 +259,6 @@
 
       try   { fullRoster = JSON.parse(mapped.roster || '[]'); }
       catch { fullRoster = []; }
-
-      searchTerm = '';
-      activeFactionFilters.clear();
-      activeClassFilters.clear();
-      document.getElementById('search').value = '';
-      sortMode = 'ascension';
-      syncAllButtons();
 
       document.getElementById('player-name').textContent =
         mapped.player_name || '(no name)';
